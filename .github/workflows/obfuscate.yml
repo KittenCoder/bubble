@@ -37,7 +37,7 @@ jobs:
           for file in src/*; do
             name=$(basename "$file")
             if [ "$name" != "MainScene.js" ] && [ "$name" != "Game.js" ]; then
-              cp "$file" js/
+              cp "$file" js/ -R
             fi
           done
 
