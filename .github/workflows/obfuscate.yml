@@ -1,0 +1,52 @@
+name: Obfuscate JS and Update GitHub Pages
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  obfuscate-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install JavaScript Obfuscator
+        run: npm install -g javascript-obfuscator
+
+      - name: Prepare js/ output
+        run: |
+          rm -rf js
+          mkdir -p js
+
+      - name: Obfuscate MainScene.js
+        run: javascript-obfuscator src/MainScene.js --output js/MainScene.js
+
+      - name: Obfuscate Game.js
+        run: javascript-obfuscator src/Game.js --output js/Game.js
+
+      - name: Copy other JS files
+        run: |
+          for file in src/*; do
+            name=$(basename "$file")
+            if [ "$name" != "MainScene.js" ] && [ "$name" != "Game.js" ]; then
+              cp "$file" js/
+            fi
+          done
+
+      - name: Commit and push updated js/ folder
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add js/
+          git commit -m "Auto-obfuscated JS for GitHub Pages"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
